@@ -84,8 +84,17 @@ class HilbertCurve:
         if h < 0:
             raise ValueError('h={} but must be > 0'.format(h))
 
+        #Example: 5 bits for each of n=3 coordinates.
+        #15-bit Hilbert integer = A B C D E F G H I J K L M N O is stored as its Transpose                        ^
+        #X[0] = A D G J M                    X[2] |  7
+        #X[1] = B E H K N        <------->        | /X[1]
+        #X[2] = C F I L O                   axes  |/
+        #        high low                         0------> X[0]
+        # each element in x is a p-digit value
+        
         x = self._hilbert_integer_to_transpose(h)
         Z = 2 << (self.p-1)
+        
 
         # Gray decode by H ^ (H/2)
         t = x[self.n-1] >> 1
@@ -164,3 +173,8 @@ class HilbertCurve:
 
         h = self._transpose_to_hilbert_integer(x)
         return h
+    
+    def get_next_time(self, cur_t, v):
+        next_t = (cur_t * (2**(self.n*self.p)-1) + v) / (2**(self.n*self.p)-1)
+        return next_t
+tkinter ponenti
