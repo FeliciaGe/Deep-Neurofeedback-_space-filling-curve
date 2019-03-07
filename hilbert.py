@@ -177,4 +177,3 @@ class HilbertCurve:
     def get_next_time(self, cur_t, v):
         next_t = (cur_t * (2**(self.n*self.p)-1) + v) / (2**(self.n*self.p)-1)
         return next_t
-tkinter ponenti
