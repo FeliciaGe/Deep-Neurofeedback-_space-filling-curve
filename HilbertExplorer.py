@@ -100,7 +100,9 @@ class HilbertExplorer:
         dist = t * (2 ** (self.n * self.p) - 1)
         next_dist = int(dist + v)
         return (self.coord_normalization(self.coordinates_from_distance(next_dist)))
-        
+    
+    def updateDist(self, v):
+        self.dist = int(self.dist + v)
     
     def getRandomCoord(self, t, p = None):
         if p is None:
@@ -328,6 +330,8 @@ def _binary_repr(num, width):
     """Return a binary string representation of `num` zero padded to `width`
     bits."""
     return format(num, 'b').zfill(width)
+
+
 
 
 
