@@ -44,6 +44,7 @@ class HilbertExplorer:
         # maximum coordinate value in any dimension
         self.max_x = 2**self.p - 1
         
+        
     '''    
     def printPerm(self):
         permList = list(permutations(range(self.n)))
@@ -65,6 +66,7 @@ class HilbertExplorer:
         
     def setT(self, t):
         self.t = t
+        self.dist = t * (2 ** (self.n * self.p) - 1)
     
         
     def getCoord(self, t, p = None):
@@ -74,6 +76,7 @@ class HilbertExplorer:
             self.p = p
         
         self.t = t
+        self.dist = t * (2 ** (self.n * self.p) - 1)
             
         # update max value
         self.max_h = 2**(self.p * self.n) - 1
@@ -84,7 +87,19 @@ class HilbertExplorer:
         norm_coord = self.coord_normalization(coord)
         perm_coord = self.getPermCoord(list(norm_coord))
         return (perm_coord)
-   
+    
+    def setP(self, p):
+        self.p = p
+        # maximum distance along curve
+        self.max_h = 2**(self.p * self.n) - 1
+
+        # maximum coordinate value in any dimension
+        self.max_x = 2**self.p - 1
+        
+    def getNextCoord(self, v, t):
+        dist = t * (2 ** (self.n * self.p) - 1)
+        next_dist = int(dist + v)
+        return (self.coord_normalization(self.coordinates_from_distance(next_dist)))
         
     
     def getRandomCoord(self, t, p = None):
@@ -94,6 +109,7 @@ class HilbertExplorer:
             self.p = p
         
         self.t = t
+        self.dist = t * (2 ** (self.n * self.p) - 1)
         
         # update max value
         self.max_h = 2**(self.p * self.n) - 1
@@ -125,24 +141,14 @@ class HilbertExplorer:
             pass
         else:
             self.t = t
+            self.dist = t * (2 ** (self.n * self.p) - 1)
     
         self.v = v
         
         #next_t = (self.t * (2**(self.n*self.p)-1) + self.v) / (2**(self.n*self.p)-1)
         next_t = self.t + self.v / (2**(self.n*self.p)-1)
         return next_t
-    
 
-    '''
-    def updateT(self, v = None):
-        if v is None:
-            pass
-        else:
-            self.v = v
-            
-        next_t = self.getNextT()
-        self.t = next_t
-    '''
 
     def _hilbert_integer_to_transpose(self, h):
         """Store a hilbert integer (`h`) as its transpose (`x`).
@@ -218,6 +224,7 @@ class HilbertExplorer:
 
         # done
         return x
+
     def getCoordList(self, t, p = None, rho = None):
         if rho is None:
             pass
@@ -230,7 +237,7 @@ class HilbertExplorer:
             self.p = p
         
         self.t = t
-        
+        self.dist = t * (2 ** (self.n * self.p) - 1)
         
         # update max value
         self.max_h = 2**(self.p * self.n) - 1
@@ -247,22 +254,72 @@ class HilbertExplorer:
         #coord2 = np.asarray(self.coord_normalization(self.coordinates_from_distance(dist2)))
         coord1 = self.getCoord(t, self.p)
         
-        next_t = (t * (2**(self.n*self.p)-1) + 2) / (2**(self.n*self.p)-1)
-        print(t)
-        print(float(next_t))
-        coord2 = self.getCoord(next_t, self.p)
-        
-        print(coord1)
-        print(coord2)
+        #next_t = (t * (2**(self.n*self.p)-1) + 2) / (2**(self.n*self.p)-1)
+        #print(t)
+        #print(float(next_t))
+        coord2 = self.getNextCoord(1, t)
         
         coord_list = [[ k * coord1[i] + (1-k) * coord2[i] for i in range(self.n)] for k in k_list] 
         
         perm_list = [self.getPermCoord(coord) for coord in coord_list]
-        #return (coord_list)
-        #a = [0,1,2,3,4]
-        #b = [2,3,4,5,6]
-        print
+
         return(coord_list)
+    
+    
+    def distance_from_coordinates(self, x_in):
+        """Return the hilbert distance for a given set of coordinates.
+
+        Args:
+            x_in (list): transpose of h
+                         (n components with values between 0 and 2**p-1)
+
+        Returns:
+            h (int): integer distance along hilbert curve
+        """
+        x = list(x_in)
+        if len(x) != self.n:
+            raise ValueError('x={} must have N={} dimensions'.format(x, self.n))
+
+        if any(elx > self.max_x for elx in x):
+            raise ValueError(
+                'invalid coordinate input x={}.  one or more dimensions have a '
+                'value greater than 2**p-1={}'.format(x, self.max_x))
+
+        if any(elx < 0 for elx in x):
+            raise ValueError(
+                'invalid coordinate input x={}.  one or more dimensions have a '
+                'value less than 0'.format(x))
+
+        M = 1 << (self.p - 1)
+
+        # Inverse undo excess work
+        Q = M
+        while Q > 1:
+            P = Q - 1
+            for i in range(self.n):
+                if x[i] & Q:
+                    x[0] ^= P
+                else:
+                    t = (x[0] ^ x[i]) & P
+                    x[0] ^= t
+                    x[i] ^= t
+            Q >>= 1
+
+        # Gray encode
+        for i in range(1, self.n):
+            x[i] ^= x[i-1]
+        t = 0
+        Q = M
+        while Q > 1:
+            if x[self.n-1] & Q:
+                t ^= Q - 1
+            Q >>= 1
+        for i in range(self.n):
+            x[i] ^= t
+
+        h = self._transpose_to_hilbert_integer(x)
+        return h
+
 
         
 
