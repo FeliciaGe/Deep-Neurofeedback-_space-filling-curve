@@ -62,9 +62,12 @@ class HilbertExplorer:
         
     def setT(self, t):
         self.t = t
-        self.dist = t * (2 ** (self.n * self.p) - 1)
+        self.dist = self._calDistFromT(self.t)
     
-        
+    def _calDistFromT(self, t):
+        dist = (int(t * pow(10,10)) * (2 ** (self.n * self.p) - 1)) // pow(10,10)
+        return dist
+    
     def getCoord(self, t, p = None):
         if p is None:
             pass
@@ -72,13 +75,13 @@ class HilbertExplorer:
             self.p = p
         
         self.t = t
-        self.dist = t * (2 ** (self.n * self.p) - 1)
+        self.dist = self._calDistFromT(self.t)
             
         # update max value
         self.max_h = 2**(self.p * self.n) - 1
         self.max_x = 2**self.p - 1
         
-        cur_dist = int(self.t * (2**(self.n*self.p)-1)) #t is in scale [0,1], dist is in scale[0, 2^(Np)-1]
+        cur_dist = self._calDistFromT(self.t) #t is in scale [0,1], dist is in scale[0, 2^(Np)-1]
         coord = self._coordinates_from_distance(cur_dist)
         norm_coord = self._coord_normalization(coord)
         perm_coord = self._getPermCoord(list(norm_coord))
@@ -93,7 +96,8 @@ class HilbertExplorer:
         self.max_x = 2**self.p - 1
         
     def getNextCoord(self, v, t):
-        dist = t * (2 ** (self.n * self.p) - 1)
+        dist = self._calDistFromT(t)
+
         next_dist = int(dist + v)
         return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(next_dist))))
 
@@ -105,7 +109,7 @@ class HilbertExplorer:
         return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(dist))))
 
     def updateDist(self, v):
-        self.dist = int(self.dist + v)
+        self.dist = self.dist + v
         
     '''
     def getRandomCoord(self, t, p = None):
@@ -148,7 +152,7 @@ class HilbertExplorer:
             pass
         else:
             self.t = t
-            self.dist = t * (2 ** (self.n * self.p) - 1)
+            self.dist = self._calDistFromT(t)
     
         self.v = v
         
@@ -329,10 +333,7 @@ class HilbertExplorer:
             x[i] ^= t
 
         h = self._transpose_to_hilbert_integer(x)
-        return h
-
-
-        
+        return h  
 
 
 def _binary_repr(num, width):
@@ -341,6 +342,7 @@ def _binary_repr(num, width):
     return format(num, 'b').zfill(width)
 
 
+    
 
 
 
