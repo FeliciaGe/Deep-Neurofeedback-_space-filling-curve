@@ -59,10 +59,6 @@ class HilbertExplorer:
     #input the Permutation List
     def setPermIndex2(self, permIndexList):
         self.Perm = np.array(permIndexList)
-
-    def getPermCoord(self, coord):
-        new_coord = [coord[i] for i in self.Perm]
-        return np.array(new_coord)
         
     def setT(self, t):
         self.t = t
@@ -83,9 +79,9 @@ class HilbertExplorer:
         self.max_x = 2**self.p - 1
         
         cur_dist = int(self.t * (2**(self.n*self.p)-1)) #t is in scale [0,1], dist is in scale[0, 2^(Np)-1]
-        coord = self.coordinates_from_distance(cur_dist)
-        norm_coord = self.coord_normalization(coord)
-        perm_coord = self.getPermCoord(list(norm_coord))
+        coord = self._coordinates_from_distance(cur_dist)
+        norm_coord = self._coord_normalization(coord)
+        perm_coord = self._getPermCoord(list(norm_coord))
         return (perm_coord)
     
     def setP(self, p):
@@ -99,16 +95,19 @@ class HilbertExplorer:
     def getNextCoord(self, v, t):
         dist = t * (2 ** (self.n * self.p) - 1)
         next_dist = int(dist + v)
-        return (self.getPermCoord(self.coord_normalization(self.coordinates_from_distance(next_dist))))
+        return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(next_dist))))
 
     def getNextCoordFromDist(self, v, dist):
         next_dist = int(dist + v)
-        return (self.getPermCoord(self.coord_normalization(self.coordinates_from_distance(next_dist))))
+        return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(next_dist))))
 
+    def getCoordFromDist(self, dist):
+        return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(dist))))
 
     def updateDist(self, v):
         self.dist = int(self.dist + v)
-    
+        
+    '''
     def getRandomCoord(self, t, p = None):
         if p is None:
             pass
@@ -127,9 +126,10 @@ class HilbertExplorer:
         dist2 = int(dist) + 1
         
         k = dist1 - dist
-        coord = k * np.asarray(self.coordinates_from_distance(dist1)) + (1-k) * np.asarray(self.coordinates_from_distance(dist2)) + np.random.normal(size = self.n)
-        return (self.getPermCoord(self.coord_normalization(coord)))
-
+        coord = k * np.asarray(self._coordinates_from_distance(dist1)) + (1-k) * np.asarray(self._coordinates_from_distance(dist2)) + np.random.normal(size = self.n)
+        return (self._getPermCoord(self._coord_normalization(coord)))
+    '''
+    
     def getNextT(self, v = None, p = None, t = None):
         #input v, get next T
         
@@ -155,6 +155,10 @@ class HilbertExplorer:
         #next_t = (self.t * (2**(self.n*self.p)-1) + self.v) / (2**(self.n*self.p)-1)
         next_t = self.t + self.v / (2**(self.n*self.p)-1)
         return next_t
+    
+    def _getPermCoord(self, coord):
+        new_coord = [coord[i] for i in self.Perm]
+        return np.array(new_coord)
 
 
     def _hilbert_integer_to_transpose(self, h):
@@ -185,12 +189,12 @@ class HilbertExplorer:
         h = int(''.join([y[i] for i in range(self.p) for y in x_bit_str]), 2)
         return h
     
-    def coord_normalization(self, coord):
-        norm_coord = np.array([((coord_x / (2**(self.p-1)))-1)*self.l for coord_x in coord])
+    def _coord_normalization(self, coord):
+        norm_coord = np.array([((coord_x / (2**(self.p) -1 ))-0.5)*2*self.l for coord_x in coord])
         return norm_coord
         
 
-    def coordinates_from_distance(self, h):
+    def _coordinates_from_distance(self, h):
         """Return the coordinates for a given hilbert distance.
 
         Args:
@@ -268,12 +272,12 @@ class HilbertExplorer:
         
         coord_list = [[ k * coord1[i] + (1-k) * coord2[i] for i in range(self.n)] for k in k_list] 
         
-        perm_list = [self.getPermCoord(coord) for coord in coord_list]
+        perm_list = [self._getPermCoord(coord) for coord in coord_list]
 
         return(coord_list)
     
     
-    def distance_from_coordinates(self, x_in):
+    def _distance_from_coordinates(self, x_in):
         """Return the hilbert distance for a given set of coordinates.
 
         Args:
@@ -335,6 +339,12 @@ def _binary_repr(num, width):
     """Return a binary string representation of `num` zero padded to `width`
     bits."""
     return format(num, 'b').zfill(width)
+
+
+
+
+
+
 
 
 
