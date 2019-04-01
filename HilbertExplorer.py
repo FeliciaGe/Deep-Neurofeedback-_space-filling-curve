@@ -343,8 +343,8 @@ def _binary_repr(num, width):
 
 
     
-
-
+def check(num):
+    return (num+1)
 
 
 
