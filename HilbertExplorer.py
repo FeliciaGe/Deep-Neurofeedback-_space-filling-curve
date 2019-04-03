@@ -8,6 +8,7 @@ class HilbertExplorer:
     t = 0.5 # current position on the curve
     l = 1   # side length of space
     v = 1   # initial velocity
+    dist = 1
     
     
     def __init__(self, n, l = None, rho = None):
@@ -88,6 +89,9 @@ class HilbertExplorer:
         return (perm_coord)
     
     def setP(self, p):
+        self.dist = int(self.dist * (2 ** (self.n * p) -1) // ((2 ** (self.n * self.p) -1))) 
+        #self.t = (self.dist * pow(10,10) // (2 ** (self.n * p) -1)) / pow(10,10)
+        
         self.p = p
         # maximum distance along curve
         self.max_h = 2**(self.p * self.n) - 1
@@ -95,6 +99,8 @@ class HilbertExplorer:
         # maximum coordinate value in any dimension
         self.max_x = 2**self.p - 1
         
+
+
     def getNextCoord(self, v, t):
         dist = self._calDistFromT(t)
 
@@ -340,12 +346,6 @@ def _binary_repr(num, width):
     """Return a binary string representation of `num` zero padded to `width`
     bits."""
     return format(num, 'b').zfill(width)
-
-
-    
-def check(num):
-    return (num+1)
-
 
 
 
