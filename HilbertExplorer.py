@@ -8,7 +8,7 @@ class HilbertExplorer:
     t = 0.5 # current position on the curve
     l = 1   # side length of space
     v = 1   # initial velocity
-    dist = 1
+    dist = '1'
     
     
     def __init__(self, n, l = None, rho = None):
@@ -40,11 +40,13 @@ class HilbertExplorer:
         self.Perm = list(range(self.n)) 
         
         # maximum distance along curve
-        self.max_h = 2**(self.p * self.n) - 1
-
-        # maximum coordinate value in any dimension
-        self.max_x = 2**self.p - 1
+        #self.max_h = 2**(self.p * self.n) - 1
+        self.max_h = (self.p*self.n) * '1'
         
+        # maximum coordinate value in any dimension
+        #self.max_x = 2**self.p - 1
+        self.max_x = '1'*(self.p)
+    
         
     '''    
     def printPerm(self):
@@ -67,6 +69,7 @@ class HilbertExplorer:
     
     def _calDistFromT(self, t):
         dist = (int(t * pow(10,10)) * (2 ** (self.n * self.p) - 1)) // pow(10,10)
+        dist = format(dist, 'b')
         return dist
     
     def getCoord(self, t, p = None):
@@ -79,8 +82,10 @@ class HilbertExplorer:
         self.dist = self._calDistFromT(self.t)
             
         # update max value
-        self.max_h = 2**(self.p * self.n) - 1
-        self.max_x = 2**self.p - 1
+        self.max_h = '1' * (self.p*self.n)
+        #self.max_h = 2**(self.p * self.n) - 1
+        #self.max_x = 2**self.p - 1
+        self.max_x = '1' * self.p
         
         cur_dist = self._calDistFromT(self.t) #t is in scale [0,1], dist is in scale[0, 2^(Np)-1]
         coord = self._coordinates_from_distance(cur_dist)
@@ -89,33 +94,41 @@ class HilbertExplorer:
         return (perm_coord)
     
     def setP(self, p):
-        self.dist = int(self.dist * (2 ** (self.n * p) -1) // ((2 ** (self.n * self.p) -1))) 
+       
+        if p >= self.p:
+            self.dist = self.dist + '0' * (p-self.p)
+        else:
+            self.dist = self.dist[:(p-self.p)]
+        #self.dist = int(self.dist * (2 ** (self.n * p) -1) // ((2 ** (self.n * self.p) -1))) 
         #self.t = (self.dist * pow(10,10) // (2 ** (self.n * p) -1)) / pow(10,10)
         
         self.p = p
-        # maximum distance along curve
-        self.max_h = 2**(self.p * self.n) - 1
-
+        #maximum distance along curve
+        #self.max_h = 2**(self.p * self.n) - 1
+        self.max_h = '1' * (self.p*self.n)
         # maximum coordinate value in any dimension
-        self.max_x = 2**self.p - 1
-        
+        #self.max_x = 2**self.p - 1
+        self.max_x = '1' * (self.p)
 
 
     def getNextCoord(self, v, t):
         dist = self._calDistFromT(t)
-
-        next_dist = int(dist + v)
+        v1 = format(v,'b')
+        next_dist = _add_binary_nums(dist,v1)
+        #next_dist = int(dist + v)
         return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(next_dist))))
 
     def getNextCoordFromDist(self, v, dist):
-        next_dist = int(dist + v)
+        v1 = format(v,'b')
+        next_dist = _add_binary_nums(dist,v1)
         return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(next_dist))))
 
     def getCoordFromDist(self, dist):
         return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(dist))))
 
     def updateDist(self, v):
-        self.dist = self.dist + v
+        v1 = format(v,'b')
+        self.dist = _add_binary_nums(self.dist,v1)
         
     '''
     def getRandomCoord(self, t, p = None):
@@ -181,7 +194,8 @@ class HilbertExplorer:
             x (list): transpose of h
                       (n components with values between 0 and 2**p-1)
         """
-        h_bit_str = _binary_repr(h, self.p*self.n)
+        h_bit_str = h.zfill(self.p*self.n)
+        #h_bit_str = _binary_repr(h, self.p*self.n)
         x = [int(h_bit_str[i::self.n], 2) for i in range(self.n)]
         return x
 
@@ -214,10 +228,11 @@ class HilbertExplorer:
             x (list): transpose of h
                       (n components with values between 0 and 2**p-1)
         """
-        if h > self.max_h:
+        ###---MAX-NEED-UPDATE---###
+        if len(h) > len(self.max_h):
             raise ValueError('h={} is greater than 2**(p*N)-1={}'.format(h, self.max_h))
-        if h < 0:
-            raise ValueError('h={} but must be > 0'.format(h))
+        #if h < 0:
+        #    raise ValueError('h={} but must be > 0'.format(h))
 
         x = self._hilbert_integer_to_transpose(h)
         Z = 2 << (self.p-1)
@@ -286,7 +301,7 @@ class HilbertExplorer:
 
         return(coord_list)
     
-    
+    '''
     def _distance_from_coordinates(self, x_in):
         """Return the hilbert distance for a given set of coordinates.
 
@@ -341,12 +356,28 @@ class HilbertExplorer:
         h = self._transpose_to_hilbert_integer(x)
         return h  
 
-
+    '''
 def _binary_repr(num, width):
     """Return a binary string representation of `num` zero padded to `width`
     bits."""
     return format(num, 'b').zfill(width)
 
+def _add_binary_nums(x,y):
+    max_len = max(len(x), len(y))
 
+    x = x.zfill(max_len)
+    y = y.zfill(max_len)
 
+    result = ''
+    carry = 0
 
+    for i in range(max_len-1, -1, -1):
+        r = carry
+        r += 1 if x[i] == '1' else 0
+        r += 1 if y[i] == '1' else 0
+        result = ('1' if r % 2 == 1 else '0') + result
+        carry = 0 if r < 2 else 1       
+
+    if carry !=0 : result = '1' + result
+
+    return result.zfill(max_len)
