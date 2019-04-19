@@ -6,7 +6,7 @@ class HilbertExplorer:
     
     p = 1   # order of Hilbert Curve
     t = 0.5 # current position on the curve
-    l = 1   # side length of space
+    l = []   # side length of space
     v = 1   # initial velocity
     dist = '1'
     
@@ -19,11 +19,16 @@ class HilbertExplorer:
             Size of Explored Space: [-l, l]^ N
             rho: number of points return between on a segment
         '''
-
+        
         if l is None: 
-            l = 1
-        elif l <= 0:
-            raise ValueError('l must > 0')
+            l = [[-1,1]]*n
+        else:
+            if (checkL(l, n)):
+                self.l = l
+            else:
+                print('l is not initialized')
+                self.l = [[-1,1]]*n
+        
         
         if n <= 0:
             raise ValueError('N must be > 0')
@@ -53,6 +58,13 @@ class HilbertExplorer:
         permList = list(permutations(range(self.n)))
         print(permList)
     '''
+    
+    def setL(self, l):
+        # input a length of length l 
+        if (checkL(l, self.n)):
+            self.l = l
+        else:
+            print('l is not initialized')
     
     #input an index to get order of permutation
     def setPermIndex(self, index):
@@ -96,9 +108,9 @@ class HilbertExplorer:
     def setP(self, p):
        
         if p >= self.p:
-            self.dist = self.dist + '0' * (p-self.p)
+            self.dist = self.dist + '0' * ((p-self.p)*self.n)
         else:
-            self.dist = self.dist[:(p-self.p)]
+            self.dist = self.dist[:((p-self.p)*self.n)]
         #self.dist = int(self.dist * (2 ** (self.n * p) -1) // ((2 ** (self.n * self.p) -1))) 
         #self.t = (self.dist * pow(10,10) // (2 ** (self.n * p) -1)) / pow(10,10)
         
@@ -214,7 +226,8 @@ class HilbertExplorer:
         return h
     
     def _coord_normalization(self, coord):
-        norm_coord = np.array([((coord_x / (2**(self.p) -1 ))-0.5)*2*self.l for coord_x in coord])
+        #norm_coord = np.array([((coord_x / (2**(self.p) -1 ))-0.5)*2*self.l for coord_x in coord])
+        norm_coord = np.array([((coord[j]/(2**(self.p)-1)-0.5)*(self.l[j][1]-self.l[j][0])+(self.l[j][1]+self.l[j][0])/2) for j in range(self.n)])
         return norm_coord
         
 
@@ -362,6 +375,7 @@ def _binary_repr(num, width):
     bits."""
     return format(num, 'b').zfill(width)
 
+
 def _add_binary_nums(x,y):
     max_len = max(len(x), len(y))
 
@@ -381,3 +395,15 @@ def _add_binary_nums(x,y):
     if carry !=0 : result = '1' + result
 
     return result.zfill(max_len)
+
+def checkL(l,n):
+    if (len(l) != n):
+        return False
+    
+    for i in l:
+        if (len(i) != 2):
+            return False
+        elif (i[0] >= i[1]):
+            return False
+        
+    return True
