@@ -101,9 +101,9 @@ class HilbertExplorer:
         
         cur_dist = self._calDistFromT(self.t) #t is in scale [0,1], dist is in scale[0, 2^(Np)-1]
         coord = self._coordinates_from_distance(cur_dist)
-        norm_coord = self._coord_normalization(coord)
-        perm_coord = self._getPermCoord(list(norm_coord))
-        return (perm_coord)
+        perm_coord = self._getPermCoord(list(coord))
+        norm_coord = self._coord_normalization(perm_coord)
+        return (norm_coord)
     
     def setP(self, p):
        
@@ -128,15 +128,16 @@ class HilbertExplorer:
         v1 = format(v,'b')
         next_dist = _add_binary_nums(dist,v1)
         #next_dist = int(dist + v)
-        return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(next_dist))))
+        return (self._coord_normalization(self._getPermCoord(self._coordinates_from_distance(next_dist))))
 
     def getNextCoordFromDist(self, v, dist):
         v1 = format(v,'b')
         next_dist = _add_binary_nums(dist,v1)
-        return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(next_dist))))
+        return (self._coord_normalization(self._getPermCoord(self._coordinates_from_distance(next_dist))))
 
     def getCoordFromDist(self, dist):
-        return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(dist))))
+        #return (self._getPermCoord(self._coord_normalization(self._coordinates_from_distance(dist))))
+        return (self._coord_normalization(self._getPermCoord(self._coordinates_from_distance(dist))))
 
     def updateDist(self, v):
         v1 = format(v,'b')
